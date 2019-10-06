@@ -15,18 +15,19 @@ import speech_recognition as sr
 import os
 import webbrowser
 import smtplib
+import sys
 
 def talkToMe(command):  
   engine = pyttsx3.init()
   voices = engine.getProperty('voices')
-  for voice in voices:
-    print("Voice:")
-    print(" - ID: %s" % voice.id)
-    print(" - Name: %s" % voice.name)
-    print(" - Languages: %s" % voice.languages)
-    print(" - Gender: %s" % voice.gender)
-    print(" - Age: %s" % voice.age)
-  en_voice_id = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-US_ZIRA_11.0"
+  # for voice in voices:
+  #   print("Voice:")
+  #   print(" - ID: %s" % voice.id)
+  #   print(" - Name: %s" % voice.name)
+  #   print(" - Languages: %s" % voice.languages)
+  #   print(" - Gender: %s" % voice.gender)
+  #   print(" - Age: %s" % voice.age)
+  en_voice_id = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices\Tokens\TTS_MS_EN-GB_HAZEL_11.0"
   engine.setProperty('voice', en_voice_id)
   engine.say(command)
   engine.setProperty('volume',0.9)
@@ -36,6 +37,7 @@ def myCommand():
   r = sr.Recognizer()
   with sr.Microphone() as source: 
     print('Prepared for next command')
+    talkToMe('Prepared for your next command sir')
     r.pause_threshold = 1
     r.adjust_for_ambient_noise(source, duration = 1)
     audio = r.listen(source)
@@ -56,8 +58,8 @@ def assistant(command):
     url = 'https://www.youtube.com/watch?v=l9nh1l8ZIJQ'
     webbrowser.open(url)
     
-  if 'open asian lo-fi mix' in command:
-    talkToMe('Aye sir, opening asian lofi mix now')
+  if 'open peaceful lo-fi mix' in command:
+    talkToMe('Aye sir, opening peace lofi mix now')
     url = 'https://www.youtube.com/watch?v=X1uaOtiJ9Vc'
     webbrowser.open(url)
     
@@ -70,8 +72,39 @@ def assistant(command):
     url = 'https://www.youtube.com/watch?v=ryCfgtSyvoU'
     webbrowser.open(url)
 
+  if 'storytime' in command:
+    talkToMe('Certainly sir. Playing story time now.')
+    url = 'https://www.youtube.com/watch?v=ni_r28ev404'
+    webbrowser.open(url)
+
+  if 'true mandalore' in command:
+    talkToMe('For Mandalore sir!')
+    url = 'https://www.youtube.com/watch?v=Q6QFjWcfz1c'
+    webbrowser.open(url)
+
+  if 'calendar events' in command:
+    talkToMe('Of course sir.')
+    # get the exact number of entries the person wants. 
+    # Or just ask them for the day they want the information for. 
+    get_events(2, service)
+    
+  if 'iron man workshop' in command:
+    talkToMe('For Mandalore sir!')
+    url = 'https://www.youtube.com/watch?v=BN1WwnEDWAM'
+    webbrowser.open(url)
+    
+  if 'ac dc mix' in command: 
+    talkToMe('Playing AC DC mix now')
+    url = 'https://www.youtube.com/watch?v=zFgNyCItmcE&list=PLxAOpDAvaMej0t20MTfd4bOEtRqwmL26R'
+    webbrowser.open(url)
+    
+  # For some reason it still exits here even though you don't tell it to tshut down. 
+  if 'shut down' or 'quit' or 'exit' or 'terminate' or 'power down' or 'power off' in command:
+    talkToMe('Powering down now sir. Have a lovely day.')
+    sys.exit()
+  
 def main(): 
-  talkToMe('Hello captain, my name is Serina, what can I do for you today sir?')
+  talkToMe('Welcome home sir, how may I serve you?')
 
   while True:
     assistant(myCommand())
@@ -109,7 +142,8 @@ def authenticate_google():
 def get_events(n, service):
     # Call the Calendar API
     now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
-    print(f'Getting the upcoming {n} events')
+    print(f'Getting the upcoming {n} events now sir.')
+    talkToMe('Getting the upcoming ' + str(n) + ' events now sir.')
     events_result = service.events().list(calendarId='primary', timeMin=now,
                                         maxResults=n, singleEvents=True,
                                         orderBy='startTime').execute()
@@ -117,14 +151,28 @@ def get_events(n, service):
 
     if not events:
         print('No upcoming events found.')
+        talkToMe('No upcoming events found.')
     for event in events:
+        # {Y} days ago, yesterday, today, tomorrow, in {X} days
+        dateDiff = 'today'
+        today = datetime.date.today()
         start = event['start'].get('dateTime', event['start'].get('date'))
         dt = dateparser.parse(start)
+        time = dt.time()
+        timeString = dt.time().strftime('%I:%M %p')
+        date = dt.date()
+        dateString = date.strftime('%A, %B %d')
+        if date < today:
+          dateDiff = str((today.day - date.day)) + ' days ago'
+        elif date > today:
+          # event is ahead of us
+          dateDiff = 'in ' + str((date.day - today.day)) + ' days,'
         # This dt.time() only returns the start time for the event and not the end time. 
-        print(f'Event is today {dt.date()} at start time {dt.time()}', event['summary'])
-
+        print(f'Sir, event is {dateString} {dateDiff} Event begins at start time {timeString}', event['summary'])
+        talkToMe('Sir, event is ' + dateString + ' ' + dateDiff + '.' + 'Event begins at start time ' + timeString + ',: ' + str(event['summary']))
 
 service = authenticate_google()
-get_events(2, service)
 
+if __name__ == "__main__":
+   main()
 #TODO: Change formatting for date and have Serina tell me about the event. 
